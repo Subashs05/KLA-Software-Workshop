@@ -1,7 +1,7 @@
 import math                                            
 import numpy as np
 #reading input data
-input_file=open('Milestone2\Input\Testcase1.txt','r')
+input_file=open('Milestone2\Input\Testcase3.txt','r')
 input_data=input_file.readlines()
 input_dict={}
 for i in input_data:
@@ -26,55 +26,100 @@ ReferenceDie_x=int(ReferenceDie[0])
 ReferenceDie_y=int(ReferenceDie[1])
 # Trying to find angle
 Die_shift_vector_Distance=math.dist([0,0],[DieShiftVector_x,DieShiftVector_y])
-print("\nResult...",math.degrees(np.arcsin(0.5)))
-#number_of_die= area of a sqaure of side diameter of wafer/area of each die
-print(WaferDiameter)
-number_of_die=(WaferDiameter**2)/(h*w)
-print(number_of_die)
-our_initial_point=[DieShiftVector_x,DieShiftVector_y]
-print(our_initial_point)
-#inplementing bfs
-queue=[our_initial_point]
-visted=[our_initial_point]
-output_dict={}
-while(queue):
-    node=queue.pop(0)
-    x=node[0]
-    y=node[1]
-    if x+w<(WaferDiameter/2)  and [x+w,y] not in visted:
-        if  (math.dist([0,0],[x+w,y])<=(WaferDiameter/2)):
-            queue.append([x+w,y])
-            visted.append([x+w,y])
-        else:
-            if  (math.dist([0,0],[x,y])<=(WaferDiameter/2)) and [x,y] not in visted:
-                 visted.append([x,y])
-            
-    if x-w>=(-1*WaferDiameter/2)and [x-w,y] not in visted:
-        if (math.dist([0,0],[x-w,y])<=(WaferDiameter/2)) :
-            queue.append([x-w,y])
-            visted.append([x-w,y])
-        else:
-            if  (math.dist([0,0],[x,y])<=(WaferDiameter/2)) and [x,y] not in visted:
-                 visted.append([x,y])
-    if y+h<(WaferDiameter/2) and [x,y+h] not in visted:
-        if (math.dist([0,0],[x,y+h])<=(WaferDiameter/2)):
-            queue.append([x,y+h])
-            visted.append([x,y+h])
-        else:
-            if  (math.dist([0,0],[x,y])<=(WaferDiameter/2)) and [x,y] not in visted:
-                 visted.append([x,y])
-    if y-h>=(-1*WaferDiameter/2) and [x,y-h] not in visted :
-        if (math.dist([0,0],[x,y-h])<=(WaferDiameter/2)):
-            queue.append([x,y-h])
-            visted.append([x,y-h])
-        else:
-            if  (math.dist([0,0],[x,y])<=(WaferDiameter/2)) and [x,y-h] not in visted:
-                 visted.append([x,y-h])
-print(visted)
-visted.sort()
-print(len(visted))
-output_file = open ('MileStone2_Output_test_case1.txt', 'w')
-for i in visted:
-    output_file.write(("("+str(i[0])+','+str(i[1])+")"+':'+"("+str(i[0]/30)+','+str(i[1]/30)+")"))
-    output_file.write('\n')
-output_file.close()
+start_x=ReferenceDie_x-(h/2)
+start_y=ReferenceDie_y-(w/2)
+print(start_x,start_y)
+#BFS implementation
+total_boxes=(math.ceil(WaferDiameter/h)*math.ceil(WaferDiameter/w))
+print(total_boxes)
+
+def condition(x,y):
+    flag=0
+    if((x>(WaferDiameter/2) or x<-(WaferDiameter/2) )and (y>(WaferDiameter/2) or y<-(WaferDiameter/2))):
+        flag+=1
+    if((x+h>(WaferDiameter/2) or x+h<-(WaferDiameter/2)) and (y>(WaferDiameter/2) or y<-(WaferDiameter/2))):
+        flag+=1
+    if((x>(WaferDiameter/2) or x<-(WaferDiameter/2)) and (y+w>(WaferDiameter/2) or y+w<-(WaferDiameter/2))):
+        flag+=1
+    if((x+h>(WaferDiameter/2) or x+h<-(WaferDiameter/2)) and (y+w>(WaferDiameter/2) or y+w<-(WaferDiameter/2))):
+        flag+=1
+    if(flag==4):
+        return False
+    return True
+    
+    
+def bfs(start_x,start_y):
+    queue=[]
+    from_reference=[]
+    visted=[]
+    start_x=start_x
+    start_y=start_y
+    print(start_x,start_y)
+    from_reference.append([0,0])
+    queue.append([start_x,start_y])
+    res=[(0,0)]
+    visted.append((start_x,start_y))
+    c=0
+    while(True):
+        x,y=queue.pop(0)
+        l1,l2=from_reference.pop(0)
+        if(condition(x,y)==False):
+            visted.remove((x,y))
+            res.remove((l1,l2))
+            break
+        if((x+h,y) not in visted):
+            queue.append([x+h,y])
+            from_reference.append([l1+1,l2])
+            res.append((l1+1,l2))
+            visted.append((x+h,y))
+        if((x-h,y) not in visted):
+            queue.append([x-h,y])
+            from_reference.append([l1-1,l2])
+            res.append((l1-1,l2))
+            visted.append((x-h,y))
+        if((x,y+w) not in visted):
+            queue.append([x,y+w])
+            from_reference.append([l1,l2+1])
+            res.append((l1,l2+1))
+            visted.append((x,y+w))
+        if((x,y-w) not in visted):
+            queue.append([x,y-w])
+            from_reference.append([l1,l2-1])
+            res.append((l1,l2-1))
+            visted.append((x,y-w))
+        if((x+h,y+w) not in visted):
+            queue.append([x+h,y+w])
+            from_reference.append([l1+1,l2+1])
+            res.append((l1+1,l2+1))
+            visted.append((x+h,y+w))
+        if((x+h,y-w) not in visted):
+            queue.append([x+h,y-w])
+            from_reference.append([l1+1,l2-1])
+            res.append((l1+1,l2-1))
+            visted.append((x+h,y-w))
+        if((x-h,y-w) not in visted):
+            queue.append([x-h,y-w])
+            from_reference.append([l1-1,l2-1])
+            res.append((l1-1,l2-1))
+            visted.append((x-h,y-w))
+        if((x-h,y+w) not in visted):
+            queue.append([x-h,y+w])
+            from_reference.append([l1-1,l2+1])
+            res.append((l1-1,l2+1))
+            visted.append((x-h,y+w))
+        c+=1
+    return res,visted
+
+
+
+resultant,visted=bfs(start_x,start_y)
+result=[]
+for i in range(len(resultant)):
+    s=str(resultant[i]).replace(' ', '')+":"+str(visted[i]).replace(' ','')
+    result.append(s)
+print(result)
+#writing in file
+with open('milestone2_output3.txt', 'w') as f:
+    for i in result:
+        f.write(i)
+        f.write('\n')
